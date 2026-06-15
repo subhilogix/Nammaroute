@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from data_layer.feeds import get_all_feeds
 from ml_model.eta_model import predict_eta
+from route_engine.router import get_routes
 from datetime import datetime
 
 app = FastAPI(title="NammaRoute API", version="1.0")
@@ -35,3 +36,15 @@ def predict(mode: str, distance_km: float):
         distance_km=distance_km,
         mode=mode
     )
+
+@app.get("/route")
+def route(source: str, destination: str, preference: str = "time"):
+    return get_routes(source, destination, preference)
+
+@app.get("/stops")
+def stops():
+    from route_engine.graph_builder import transit_graph
+    return [
+        {"id": node, **data}
+        for node, data in transit_graph.nodes(data=True)
+    ]
